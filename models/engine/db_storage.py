@@ -77,26 +77,21 @@ class DBStorage:
 
     def get(self, cls, id):
         """Retrives an object based on classname and id"""
-        result = None
-        try:
-            objs = self.__session.query(models.classes[cls]).all()
-            for obj in objs:
-                if obj in objs:
-                    if obj.id == id:
-                        result = obj
-        except BaseException:
-            pass
-        return result
+        if cls is not None and type(cls) is str and id is not None and\
+           type(id) is str and cls in classes:
+            cls = classes[cls]
+            result = self.__session.query(cls).filter(cls.id == id).first()
+            return result
+        else:
+            return None
 
     def count(self, cls=None):
         """Count num objects in DBstorage"""
-        cls_counter = 0
-        if cls is not None:
-            objs = self.__session.query(models.classes[cls]).all()
-            cls_counter = len(objs)
-        else:
-            for k, v in models.classes.items():
-                if k != "BaseModel":
-                    objs = self.__session.query(models.classes[k]).all()
-                    cls_counter += len(objs)
-        return cls_counter
+        total = 0
+        if type(cls) == str and cls in classes:
+            cls = classes[cls]
+            total = self.__session.query(cls).count()
+        elif cls is None:
+            for cls in classes.values():
+                total += self.__session.query(cls).count()
+        return total
